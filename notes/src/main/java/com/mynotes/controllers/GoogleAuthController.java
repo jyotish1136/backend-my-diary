@@ -37,7 +37,7 @@ public class GoogleAuthController {
             userRepo.save(newUser);
         }
         String jwtToken = jwtUtil.generateToken(email);
-        String redirectUri = "http://localhost:5173/home?token=" + jwtToken;
+        String redirectUri = "https://my-notes-3cdx.onrender.com?token=" + jwtToken;
         response.sendRedirect(redirectUri);
     }
 }
