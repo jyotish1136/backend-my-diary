@@ -3,8 +3,8 @@ spring:
     name: MyNotes
   datasource:
     url: jdbc:mysql://localhost:3306/mynotes
-    username: root
-    password: root123
+    username: ${DB_USERNAME}
+    password: ${DB_PASSWORD}
     driver-class-name: com.mysql.cj.jdbc.Driver
   jpa:
     database-platform: org.hibernate.dialect.MySQL8Dialect
@@ -16,12 +16,12 @@ spring:
       client:
         registration:
           google:
-            client-id: 261203815672-ntjjuqctbbgq9i5d5833du9vlrgtlvpv.apps.googleusercontent.com
-            client-secret: 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
+            client-id: ${GOOGLE_CLIENT_ID}
+            client-secret: ${GOOGLE_CLIENT_SECRET}
             scope: profile,email
         provider:
           google:
-            redirect-uri: http://localhost:8080/oauth2/google
+            redirect-uri: ${REDIRECT_URI}
             authorization-uri: https://accounts.google.com/o/oauth2/auth
             token-uri: https://oauth2.googleapis.com/token
             user-info-uri: https://www.googleapis.com/oauth2/v3/userinfo
