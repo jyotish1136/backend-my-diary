@@ -65,7 +65,7 @@ public class NotesController {
             note.setUser(user);
             notesService.saveNote(note);
             userService.saveUser(user);
-            return ResponseEntity.ok().build();
+            return ResponseEntity.ok(note);
         }
         return ResponseEntity.badRequest().build();
     }

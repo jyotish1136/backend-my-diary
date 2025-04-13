@@ -27,8 +27,18 @@ public class UserController {
         }
         return ResponseEntity.badRequest().build();
     }
+    @GetMapping("/check-username")
+    public ResponseEntity<Boolean> isUsernameAvailable(@RequestParam String username) {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        String name = authentication.getName();
+        if (name != null) {
+            boolean exists = userService.existsByUsername(username);
+            return ResponseEntity.ok(!exists);
+        }
+        return ResponseEntity.badRequest().build();
+    }
     @PutMapping
-    public ResponseEntity<Object> updateDetails(@RequestBody User user) {
+    public ResponseEntity<?> updateDetails(@RequestBody User user) {
         try {
             String username = SecurityContextHolder.getContext().getAuthentication().getName();
             User existingUser = userService.findByUsername(username);
@@ -42,9 +52,8 @@ public class UserController {
             if (user.getFirstname() != null) existingUser.setFirstname(user.getFirstname());
             if (user.getLastname() != null) existingUser.setLastname(user.getLastname());
             if (user.getEmail() != null) existingUser.setEmail(user.getEmail());
-            System.out.println(user.getFirstname()+user.getLastname());
             userService.saveUser(existingUser);
-            return ResponseEntity.ok().body("User updated successfully");
+            return ResponseEntity.ok(existingUser);
         } catch (Exception e) {
             return ResponseEntity.badRequest().body("Error");
         }

@@ -15,18 +15,19 @@ public class UserService {
     public UserService(UserRepo userRepo) {
         this.userRepo = userRepo;
     }
+
     @Autowired
     private PasswordEncoder passwordEncoder;
+
     public void saveNewUser(User user) {
         user.setPassword(passwordEncoder.encode(user.getPassword()));
         userRepo.save(user);
     }
 
-    @Cacheable(value = "users", key = "#username")
+    @Cacheable(value = "users" ,key = "#username")
     public User findByUsername(String username) {
         return userRepo.findByUsername(username);
     }
-
 
     public void saveUser(User user) {
         userRepo.save(user);
@@ -40,7 +41,7 @@ public class UserService {
         userRepo.delete(user);
     }
 
-    public User findByEmail(String email) {
-        return userRepo.findByEmail(email);
+    public boolean existsByUsername(String name) {
+        return userRepo.existsByUsername(name);
     }
 }
