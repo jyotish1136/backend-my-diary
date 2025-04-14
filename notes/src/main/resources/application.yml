@@ -2,7 +2,7 @@ spring:
   application:
     name: MyNotes
   datasource:
-    url: jdbc:postgresql://localhost:5432/mynotes
+    url: jdbc:postgresql://postgres:5432/mynotes
     username: ${DB_USERNAME}
     password: ${DB_PASSWORD}
     driver-class-name: org.postgresql.Driver
