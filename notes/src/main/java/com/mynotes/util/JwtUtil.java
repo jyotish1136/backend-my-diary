@@ -19,6 +19,7 @@ public class JwtUtil {
     }
     public String generateToken(String username) {
         HashMap<String, Object> claims = new HashMap<>();
+
         return createToken(claims, username);
     }
 

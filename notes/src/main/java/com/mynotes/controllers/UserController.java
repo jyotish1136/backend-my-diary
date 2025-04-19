@@ -1,7 +1,9 @@
 package com.mynotes.controllers;
 
+import com.mynotes.DTO.UserDTO;
 import com.mynotes.entities.User;
 import com.mynotes.services.UserService;
+import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -17,24 +19,16 @@ public class UserController {
     private UserService userService;
     @Autowired
     private PasswordEncoder passwordEncoder;
+    @Autowired
+    private ModelMapper modelMapper;
+
     @GetMapping
     public ResponseEntity<?> getUser() {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         String username = authentication.getName();
         User user = userService.findByUsername(username);
-        if (user != null) {
-            return ResponseEntity.ok(user);
-        }
-        return ResponseEntity.badRequest().build();
-    }
-    @GetMapping("/check-username")
-    public ResponseEntity<Boolean> isUsernameAvailable(@RequestParam String username) {
-        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-        String name = authentication.getName();
-        if (name != null) {
-            boolean exists = userService.existsByUsername(username);
-            return ResponseEntity.ok(!exists);
-        }
+        UserDTO userDTO = modelMapper.map(user, UserDTO.class);
+        if (userDTO != null) return ResponseEntity.ok(userDTO);
         return ResponseEntity.badRequest().build();
     }
     @PutMapping
@@ -53,7 +47,8 @@ public class UserController {
             if (user.getLastname() != null) existingUser.setLastname(user.getLastname());
             if (user.getEmail() != null) existingUser.setEmail(user.getEmail());
             userService.saveUser(existingUser);
-            return ResponseEntity.ok(existingUser);
+            UserDTO userDTO = modelMapper.map(existingUser, UserDTO.class);
+            return ResponseEntity.ok(userDTO);
         } catch (Exception e) {
             return ResponseEntity.badRequest().body("Error");
         }

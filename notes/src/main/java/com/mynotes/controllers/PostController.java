@@ -1,86 +1,88 @@
 package com.mynotes.controllers;
 
-import com.mynotes.entities.Notes;
+import com.mynotes.DTO.PostDTO;
+import com.mynotes.entities.Post;
 import com.mynotes.entities.User;
 import com.mynotes.repository.UserRepo;
-import com.mynotes.services.NotesService;
+import com.mynotes.services.PostsService;
 import com.mynotes.services.UserService;
+import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
-
 import java.time.Instant;
-import java.time.LocalDate;
-import java.time.format.DateTimeFormatter;
+import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 
 @RestController
 @RequestMapping("/notes")
 @CrossOrigin
-public class NotesController {
+public class PostController {
     @Autowired
-    private NotesService notesService;
+    private PostsService postsService;
     @Autowired
     private UserService userService;
     @Autowired
     private UserRepo userRepo;
+    @Autowired
+    private ModelMapper modelMapper;
 
     @GetMapping("/id/{id}")
-    public ResponseEntity<Notes> getNoteById(@PathVariable Long id){
+    public ResponseEntity<Post> getPostById(@PathVariable Long id){
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-        String username = authentication.getName();
-        User user = userService.findByUsername(username);
-        Notes noteById = notesService.getNoteById(id);
-        if (noteById != null) {
-            return ResponseEntity.ok(noteById);
+        Optional<Post> post = postsService.getPostById(id);
+        Post map = modelMapper.map(post.get(), Post.class);
+        if (post != null) {
+            return ResponseEntity.ok(map);
         }
         return ResponseEntity.noContent().build();
     }
 
     @GetMapping
-    public ResponseEntity<List<Notes>> getNotes() {
+    public ResponseEntity<?> getPosts() {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         String username = authentication.getName();
-        User user = userService.findByUsername(username);
-
-        List<Notes> allNotes = user.getNotes();
-        if (allNotes != null && !allNotes.isEmpty()) {
-            return ResponseEntity.ok(allNotes);
+        List<Post> allPosts = postsService.getAllPosts(username);
+        if (allPosts != null && !allPosts.isEmpty()) {
+            List<PostDTO> returnPosts = new ArrayList<>();
+            for(var i : allPosts){
+                returnPosts.add(modelMapper.map(i, PostDTO.class));
+            }
+            return ResponseEntity.ok(returnPosts);
         }
         return ResponseEntity.noContent().build();
     }
 
     @PostMapping
-    public ResponseEntity<Object> postNote(@RequestBody Notes note) {
+    public ResponseEntity<?> postNote(@RequestBody Post note) {
+        if (note == null || note.getTitle() == null || note.getContent() == null) {
+            return ResponseEntity.badRequest().body("Note content is incomplete.");
+        }
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         String username = authentication.getName();
-        User user = userRepo.findByUsername(username);
-
-        if (note != null) {
-            note.setDate(Instant.now());
-            user.getNotes().add(note);
-            note.setUser(user);
-            notesService.saveNote(note);
-            userService.saveUser(user);
-            return ResponseEntity.ok(note);
-        }
-        return ResponseEntity.badRequest().build();
+        postsService.saveNewPost(note,username);
+        PostDTO map = modelMapper.map(note, PostDTO.class);
+        return ResponseEntity.ok(map);
     }
 
+
     @PutMapping("/id/{id}")
-    public ResponseEntity<Object> updateNote(@PathVariable Long id, @RequestBody Notes note) {
+    public ResponseEntity<Object> updateNote(@PathVariable Long id , @RequestBody Post post) {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         String username = authentication.getName();
         User user = userRepo.findByUsername(username);
         if (user == null) {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("User not found");
         }
-        boolean updated = notesService.updateNotesById(id, user, note);
-        if (updated) {
-            return ResponseEntity.ok().body("Note updated successfully");
+        Post post1 = postsService.updatePostById(id, user, post);
+        PostDTO map = modelMapper.map(post1, PostDTO.class);
+        if (map!=null) {
+            return ResponseEntity.ok(map);
         }
         return ResponseEntity.status(HttpStatus.FORBIDDEN).body("Unauthorized or Note not found");
     }
@@ -91,7 +93,7 @@ public class NotesController {
         String username = authentication.getName();
         User user = userRepo.findByUsername(username);
         if (id != null) {
-            boolean b = notesService.deleteNotesById(id, user);
+            boolean b = postsService.deletePostById(id, user);
             if (b) return ResponseEntity.ok().build();
         }
         return ResponseEntity.badRequest().build();

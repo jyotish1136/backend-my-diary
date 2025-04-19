@@ -8,6 +8,7 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Component;
 
 import java.util.List;
+import java.util.Optional;
 
 @Component
 public class UserService {
@@ -28,6 +29,10 @@ public class UserService {
     public User findByUsername(String username) {
         return userRepo.findByUsername(username);
     }
+    @Cacheable(value = "email" ,key = "#email")
+    public User findByEmail(String email) {
+        return userRepo.findByEmail(email);
+    }
 
     public void saveUser(User user) {
         userRepo.save(user);
@@ -43,5 +48,9 @@ public class UserService {
 
     public boolean existsByUsername(String name) {
         return userRepo.existsByUsername(name);
+    }
+
+    public Optional<User> findById(Long userId) {
+        return userRepo.findById(userId);
     }
 }
