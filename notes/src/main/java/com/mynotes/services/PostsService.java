@@ -7,6 +7,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
@@ -20,6 +21,10 @@ public class PostsService {
     public List<Post> getAllPosts(String username) {
         User user = userService.findByUsername(username);
         List<Post> all = postsRepo.findByUser(user);
+        ArrayList<Post> allPublicPostsExcludingUserId = postsRepo.findAllPublicPostsExcludingUserId(user.getId());
+        if (!allPublicPostsExcludingUserId.isEmpty() && allPublicPostsExcludingUserId!=null){
+            all.addAll(allPublicPostsExcludingUserId);
+        }
         if (!all.isEmpty()){
             return postsRepo.findAll();
         }
@@ -41,7 +46,7 @@ public class PostsService {
     }
     public boolean deletePostById(Long id, User user) {
         try {
-            boolean b = user.getNotes().removeIf(i -> Objects.equals(i.getId(), id));
+            boolean b = user.getPosts().removeIf(i -> Objects.equals(i.getId(), id));
             if (b){
                 userService.saveUser(user);
                 return true;
@@ -65,8 +70,5 @@ public class PostsService {
             existingPost.setContent(post.getContent());
         }
         return postsRepo.save(existingPost);
-    }
-    public List<Post> findAllPublicPosts(){
-        return postsRepo.findPublicPosts();
     }
 }

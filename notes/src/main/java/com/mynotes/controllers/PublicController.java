@@ -83,16 +83,16 @@ public class PublicController {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Invalid username or password.");
         }
     }
-    @GetMapping("all-public-notes")
-    public ResponseEntity<?> getPosts() {
-        List<Post> allPosts = postsService.findAllPublicPosts();
-        if (allPosts != null && !allPosts.isEmpty()) {
-            List<PostDTO> returnPosts = new ArrayList<>();
-            for(var i : allPosts){
-                returnPosts.add(modelMapper.map(i, PostDTO.class));
-            }
-            return ResponseEntity.ok(returnPosts);
-        }
-        return ResponseEntity.noContent().build();
-    }
+//    @GetMapping("all-public-notes")
+//    public ResponseEntity<?> getPosts() {
+//        List<Post> allPosts = postsService.findAllPublicPosts();
+//        if (allPosts != null && !allPosts.isEmpty()) {
+//            List<PostDTO> returnPosts = new ArrayList<>();
+//            for(var i : allPosts){
+//                returnPosts.add(modelMapper.map(i, PostDTO.class));
+//            }
+//            return ResponseEntity.ok(returnPosts);
+//        }
+//        return ResponseEntity.noContent().build();
+//    }
 }

@@ -3,6 +3,8 @@ package com.mynotes.entities;
 import com.mynotes.DTO.LikeDTO;
 import jakarta.persistence.*;
 import lombok.Data;
+import net.minidev.json.annotate.JsonIgnore;
+
 import java.time.Instant;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
