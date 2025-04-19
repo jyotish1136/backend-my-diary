@@ -31,6 +31,7 @@ public class CommentService {
         comment.setDate(LocalDateTime.now());
         return commentRepo.save(comment);
     }
+    @Transactional
     public void deleteComment(Comment comment) {
         commentRepo.delete(comment);
     }
