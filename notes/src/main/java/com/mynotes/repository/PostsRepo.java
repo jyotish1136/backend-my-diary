@@ -12,8 +12,11 @@ import java.util.List;
 
 @Repository
 public interface PostsRepo extends JpaRepository<Post,Long> {
+   @Transactional
    List<Post> findByUser(User user);
+   @Transactional
    Post findById(long id);
+   @Transactional
     @Query(value = """
     SELECT p.* FROM posts_table p
     WHERE p.privacy = 'PUBLIC'
