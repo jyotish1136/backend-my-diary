@@ -45,5 +45,4 @@ public class GoogleAuthController {
         String redirectUri = "http://localhost:5173/?token=" + jwtToken;
         response.sendRedirect(redirectUri);
     }
-
 }
