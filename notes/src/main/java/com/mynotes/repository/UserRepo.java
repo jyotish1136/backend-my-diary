@@ -8,7 +8,10 @@ import java.util.Optional;
 
 @Repository
 public interface UserRepo extends JpaRepository<User,Long> {
+    @Transactional
     User findByUsername(String username);
+    @Transactional
     User findByEmail(String email);
+    @Transactional
     boolean existsByUsername(String name);
 }
