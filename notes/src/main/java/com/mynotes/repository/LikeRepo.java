@@ -10,6 +10,8 @@ import org.springframework.stereotype.Repository;
 
 @Repository
 public interface LikeRepo extends JpaRepository<Like,Long> {
+    @Transactional
     Like findByUserAndPost(User user, Post post);
+    @Transactional
     void deleteByUserAndPost(User user, Post post);
 }
