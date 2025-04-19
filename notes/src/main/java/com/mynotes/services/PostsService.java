@@ -18,6 +18,7 @@ public class PostsService {
     private PostsRepo postsRepo;
     @Autowired
     private UserService userService;
+    @Transactional
     public List<Post> getAllPosts(String username) {
         User user = userService.findByUsername(username);
         List<Post> all = postsRepo.findByUser(user);
@@ -30,7 +31,7 @@ public class PostsService {
         }
         return null;
     }
-
+    @Transactional
     public Optional<Post> getPostById(Long id) {
         return postsRepo.findById(id);
     }
@@ -44,6 +45,7 @@ public class PostsService {
         note.setUser(user);
         postsRepo.save(note);
     }
+    @Transactional
     public boolean deletePostById(Long id, User user) {
         try {
             boolean b = user.getPosts().removeIf(i -> Objects.equals(i.getId(), id));
@@ -55,6 +57,7 @@ public class PostsService {
         }
         return false;
     }
+    @Transactional
     public Post updatePostById(Long id, User user, Post post) {
         Post existingPost = postsRepo.findById(id).orElse(null);
         if (existingPost == null || !existingPost.getUser().getId().equals(user.getId())) {
