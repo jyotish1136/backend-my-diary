@@ -24,12 +24,17 @@ public class UserController {
 
     @GetMapping
     public ResponseEntity<?> getUser() {
-        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-        String username = authentication.getName();
-        User user = userService.findByUsername(username);
-        UserDTO userDTO = modelMapper.map(user, UserDTO.class);
-        if (userDTO != null) return ResponseEntity.ok(userDTO);
-        return ResponseEntity.badRequest().build();
+        try {
+            Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+            String username = authentication.getName();
+            User user = userService.findByUsername(username);
+            UserDTO userDTO = modelMapper.map(user, UserDTO.class);
+            if (userDTO != null) return ResponseEntity.ok(userDTO);
+            return ResponseEntity.badRequest().build();
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body("Error fetching user: " + e.getMessage());
+        }
     }
     @PutMapping
     public ResponseEntity<?> updateDetails(@RequestBody User user) {
@@ -50,18 +55,23 @@ public class UserController {
             UserDTO userDTO = modelMapper.map(existingUser, UserDTO.class);
             return ResponseEntity.ok(userDTO);
         } catch (Exception e) {
-            return ResponseEntity.badRequest().body("Error");
+            return ResponseEntity.badRequest().body("Error updating user details");
         }
     }
     @DeleteMapping
     public ResponseEntity<String> deleteAccount() {
-        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-        String username = authentication.getName();
-        User byUsername = userService.findByUsername(username);
-        if (byUsername == null) {
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).body("User not found");
+        try {
+            Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+            String username = authentication.getName();
+            User byUsername = userService.findByUsername(username);
+            if (byUsername == null) {
+                return ResponseEntity.status(HttpStatus.NOT_FOUND).body("User not found");
+            }
+            userService.deleteUser(byUsername);
+            return ResponseEntity.ok().body("Account deleted successfully");
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body("Error deleting user: " + e.getMessage());
         }
-        userService.deleteUser(byUsername);
-        return ResponseEntity.ok().body("Account deleted successfully");
     }
 }

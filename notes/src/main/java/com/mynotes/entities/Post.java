@@ -34,16 +34,13 @@ public class Post {
     @Column(nullable = false)
     private int likeCount = 0;
 
+    @Column(nullable = false)
+    private int commentCount = 0;
+
     @Column(name = "date")
     private LocalDateTime date;
 
     @ManyToOne
     @JoinColumn(name = "user_id", nullable = false)
     private User user;
-
-    @OneToMany(mappedBy = "post", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
-    private List<Comment> comments;
-
-    @OneToMany(mappedBy = "post", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
-    private List<Like> likedUsers;
 }

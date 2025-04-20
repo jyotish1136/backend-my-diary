@@ -13,8 +13,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
-import java.time.Instant;
-import java.time.LocalDateTime;
+
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
@@ -33,69 +32,88 @@ public class PostController {
     private ModelMapper modelMapper;
 
     @GetMapping("/id/{id}")
-    public ResponseEntity<Post> getPostById(@PathVariable Long id){
-        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+    public ResponseEntity<?> getPostById(@PathVariable Long id){
         Optional<Post> post = postsService.getPostById(id);
-        Post map = modelMapper.map(post.get(), Post.class);
-        if (post != null) {
-            return ResponseEntity.ok(map);
+        if (post.isPresent()) {
+            PostDTO map = modelMapper.map(post, PostDTO.class);
+            return ResponseEntity.ok(post);
         }
         return ResponseEntity.noContent().build();
     }
 
     @GetMapping
     public ResponseEntity<?> getPosts() {
-        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-        String username = authentication.getName();
-        List<Post> allPosts = postsService.getAllPosts(username);
-        if (allPosts != null && !allPosts.isEmpty()) {
-            List<PostDTO> returnPosts = new ArrayList<>();
-            for(var i : allPosts){
-                returnPosts.add(modelMapper.map(i, PostDTO.class));
+        try {
+            Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+            String username = authentication.getName();
+            List<Post> allPosts = postsService.getAllPosts(username);
+            if (allPosts != null && !allPosts.isEmpty()) {
+                List<PostDTO> returnPosts = new ArrayList<>();
+                for(var i : allPosts){
+                    returnPosts.add(modelMapper.map(i, PostDTO.class));
+                }
+                return ResponseEntity.ok(returnPosts);
             }
-            return ResponseEntity.ok(returnPosts);
+            return ResponseEntity.noContent().build();
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body("Error fetching posts: " + e.getMessage());
         }
-        return ResponseEntity.noContent().build();
     }
 
     @PostMapping
     public ResponseEntity<?> postNote(@RequestBody Post note) {
-        if (note == null || note.getTitle() == null || note.getContent() == null) {
-            return ResponseEntity.badRequest().body("Note content is incomplete.");
+        try {
+            if (note == null || note.getTitle() == null || note.getContent() == null) {
+                return ResponseEntity.badRequest().body("Note content is incomplete.");
+            }
+            Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+            String username = authentication.getName();
+            postsService.saveNewPost(note,username);
+            PostDTO map = modelMapper.map(note, PostDTO.class);
+            return ResponseEntity.ok(map);
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body("Error uploading post: " + e.getMessage());
         }
-        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-        String username = authentication.getName();
-        postsService.saveNewPost(note,username);
-        PostDTO map = modelMapper.map(note, PostDTO.class);
-        return ResponseEntity.ok(map);
     }
 
 
     @PutMapping("/id/{id}")
     public ResponseEntity<Object> updateNote(@PathVariable Long id , @RequestBody Post post) {
-        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-        String username = authentication.getName();
-        User user = userRepo.findByUsername(username);
-        if (user == null) {
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("User not found");
+        try {
+            Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+            String username = authentication.getName();
+            User user = userRepo.findByUsername(username);
+            if (user == null) {
+                return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("User not found");
+            }
+            Post post1 = postsService.updatePostById(id, user, post);
+            PostDTO map = modelMapper.map(post1, PostDTO.class);
+            if (map!=null) {
+                return ResponseEntity.ok(map);
+            }
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).body("Unauthorized or Note not found");
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body("Error updating posts: " + e.getMessage());
         }
-        Post post1 = postsService.updatePostById(id, user, post);
-        PostDTO map = modelMapper.map(post1, PostDTO.class);
-        if (map!=null) {
-            return ResponseEntity.ok(map);
-        }
-        return ResponseEntity.status(HttpStatus.FORBIDDEN).body("Unauthorized or Note not found");
     }
 
     @DeleteMapping("/id/{id}")
     public ResponseEntity<Object> deleteNote(@PathVariable Long id) {
-        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-        String username = authentication.getName();
-        User user = userRepo.findByUsername(username);
-        if (id != null) {
-            boolean b = postsService.deletePostById(id, user);
-            if (b) return ResponseEntity.ok().build();
+        try {
+            Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+            String username = authentication.getName();
+            User user = userRepo.findByUsername(username);
+            if (id != null) {
+                boolean b = postsService.deletePostById(id, user);
+                if (b) return ResponseEntity.ok().build();
+            }
+            return ResponseEntity.badRequest().build();
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body("Error deleting posts: " + e.getMessage());
         }
-        return ResponseEntity.badRequest().build();
     }
 }

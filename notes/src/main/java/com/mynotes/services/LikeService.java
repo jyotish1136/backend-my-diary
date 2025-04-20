@@ -50,6 +50,4 @@ public class LikeService {
         likeRepo.save(olike);
         return "Post Liked";
     }
-
-
 }

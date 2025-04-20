@@ -37,7 +37,6 @@ public class PublicController {
 
     @Autowired
     private UserDetailsServiceImpl userDetailsService;
-
     @Autowired
     private JwtUtil jwtUtil;
     @Autowired
@@ -52,20 +51,30 @@ public class PublicController {
     private PasswordEncoder passwordEncoder;
     @PostMapping("/signup")
     public ResponseEntity<String> signup(@RequestBody User user) {
-        if (user == null || user.getUsername() == null || user.getPassword() == null || user.getEmail() == null) {
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Username, password, and email are required.");
+        try {
+            if (user == null || user.getUsername() == null || user.getPassword() == null || user.getEmail() == null) {
+                return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Username, password, and email are required.");
+            }
+            user.setRoles(List.of("USER"));
+            userService.saveNewUser(user);
+            return ResponseEntity.ok("User registered successfully.");
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body("Error in signup: " + e.getMessage());
         }
-        user.setRoles(List.of("USER"));
-        userService.saveNewUser(user);
-        return ResponseEntity.ok("User registered successfully.");
     }
     @GetMapping("/check-username")
-    public ResponseEntity<Boolean> isUsernameAvailable(@RequestParam String username) {
-        if (username != null) {
-            boolean exists = userService.existsByUsername(username);
-            return ResponseEntity.ok(!exists);
+    public ResponseEntity<?> isUsernameAvailable(@RequestParam String username) {
+        try {
+            if (username != null) {
+                boolean exists = userService.existsByUsername(username);
+                return ResponseEntity.ok(!exists);
+            }
+            return ResponseEntity.badRequest().build();
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body("Error checking username: " + e.getMessage());
         }
-        return ResponseEntity.badRequest().build();
     }
     @PostMapping("/login")
     public ResponseEntity<?> login(@RequestBody User user) {
@@ -83,16 +92,4 @@ public class PublicController {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Invalid username or password.");
         }
     }
-//    @GetMapping("all-public-notes")
-//    public ResponseEntity<?> getPosts() {
-//        List<Post> allPosts = postsService.findAllPublicPosts();
-//        if (allPosts != null && !allPosts.isEmpty()) {
-//            List<PostDTO> returnPosts = new ArrayList<>();
-//            for(var i : allPosts){
-//                returnPosts.add(modelMapper.map(i, PostDTO.class));
-//            }
-//            return ResponseEntity.ok(returnPosts);
-//        }
-//        return ResponseEntity.noContent().build();
-//    }
 }

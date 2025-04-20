@@ -1,6 +1,8 @@
 package com.mynotes.services;
 
 import com.mynotes.DTO.CommentDTO;
+import com.mynotes.DTO.CommentDeleteDTO;
+import com.mynotes.DTO.CommentRequestDTO;
 import com.mynotes.entities.Comment;
 import com.mynotes.entities.Post;
 import com.mynotes.entities.User;
@@ -10,6 +12,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
+import java.util.List;
 import java.util.Optional;
 
 @Service
@@ -21,17 +24,39 @@ public class CommentService {
     @Autowired
     private UserService userService;
     @Transactional
-    public Comment saveComment(CommentDTO commentDTO) {
-        Optional<Post> post1 = postsService.getPostById(commentDTO.getPostId());
-        Optional<User> user = userService.findById(commentDTO.getUserId());
+    public Comment saveComment(CommentRequestDTO dto) {
+        Optional<Post> postOpt = postsService.getPostById(dto.getPostId());
+        Optional<User> userOpt = userService.findById(dto.getUserId());
+
+        if (postOpt.isEmpty() || userOpt.isEmpty()) {
+            throw new IllegalArgumentException("Invalid postId or userId");
+        }
+
+        Post post = postOpt.get();
+        User user = userOpt.get();
+
+        post.setCommentCount(post.getCommentCount() + 1);
+        postsService.savePost(post);
+
         Comment comment = new Comment();
-        comment.setUser(user.get());
-        comment.setPost(post1.get());
-        comment.setComment(commentDTO.getComment());
+        comment.setUser(user);
+        comment.setPostId(post.getId());
+        comment.setComment(dto.getComment());
         comment.setDate(LocalDateTime.now());
+
         return commentRepo.save(comment);
     }
-    public void deleteComment(Comment comment) {
-        commentRepo.delete(comment);
+
+
+    public void deleteComment(CommentDeleteDTO comment) {
+        Optional<Post> post = postsService.getPostById(comment.getPostId());
+        Post post1 = post.get();
+        post1.setCommentCount(post1.getCommentCount()-1);
+        postsService.savePost(post1);
+        commentRepo.deleteById(comment.getCommentId());
+    }
+
+    public List<Comment> findByPostId(Long id) {
+        return commentRepo.findAllByPostId(id);
     }
 }

@@ -18,9 +18,13 @@ public class CustomConfig {
         ModelMapper modelMapper = new ModelMapper();
         modelMapper.typeMap(Post.class, PostDTO.class).addMappings(mapper -> {
             mapper.map(src -> src.getUser().getUsername(), PostDTO::setUsername);
-            mapper.map(src -> src.getUser().getId(), PostDTO::setUserid);
+            mapper.map(src -> src.getUser().getId(), PostDTO::setUserId);
             mapper.map(src -> src.getUser().getAvatar(), PostDTO::setAvatar);
         });
         return  modelMapper;
+    }
+    @Bean
+    public ModelMapper modelMapper1() {
+        return new ModelMapper();
     }
 }

@@ -4,6 +4,7 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import jakarta.persistence.*;
 import lombok.*;
+
 import java.time.LocalDateTime;
 
 @Entity
@@ -14,10 +15,8 @@ public class Comment {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "post_id", nullable = false)
-    @JsonIgnore
-    private Post post;
+    @Column(name = "post_id", nullable = false)
+    private Long postId;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "user_id", nullable = false)
@@ -25,7 +24,7 @@ public class Comment {
     private User user;
 
     @Lob
-    @Column(name="comments",nullable = false)
+    @Column(name = "comments", nullable = false)
     private String comment;
 
     @Column(nullable = false)
@@ -33,8 +32,14 @@ public class Comment {
 
     @Transient
     @JsonProperty("username")
-    public String getUserId() {
+    public String getUsername() {
         return user != null ? user.getUsername() : null;
+    }
+
+    @Transient
+    @JsonProperty("userId")
+    public Long getUserId() {
+        return user != null ? user.getId() : null;
     }
 
     @Transient
