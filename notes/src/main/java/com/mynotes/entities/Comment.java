@@ -23,7 +23,6 @@ public class Comment {
     @JsonIgnore
     private User user;
 
-    @Lob
     @Column(name = "comments", nullable = false)
     private String comment;
 
