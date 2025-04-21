@@ -24,7 +24,6 @@ public class Post {
     @Column(name = "privacy",nullable = false)
     private String privacy;
 
-    @Lob
     @Column(name = "content",nullable = false)
     private String content;
 
