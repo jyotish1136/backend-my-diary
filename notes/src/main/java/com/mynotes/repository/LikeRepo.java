@@ -13,8 +13,4 @@ import org.springframework.stereotype.Repository;
 public interface LikeRepo extends JpaRepository<Like,Long> {
     Like findByUserAndPost(User user, Post post);
     void deleteByUserAndPost(User user, Post post);
-
-//
-//    @Query(value="Select a.user_id AS userId, a.post_id AS postId from likes  a where a.user_id= :userId AND a.post_id =:postid",nativeQuery = true)
-//    LikeDTO findLikeData(@Param("postid") String postid , @Param("userId") String userId );
 }

@@ -35,14 +35,16 @@ public class PostsService {
         return postsRepo.findById(id);
     }
 
-    public void savePost(Post note) {
-        postsRepo.save(note);
+    public void savePost(Post post) {
+        postsRepo.save(post);
     }
-    public void saveNewPost(Post note, String username) {
+    public void saveNewPost(Post post, String username) {
         User user = userService.findByUsername(username);
-        note.setDate(LocalDateTime.now());
-        note.setUser(user);
-        postsRepo.save(note);
+        post.setDate(LocalDateTime.now());
+        post.setUser(user);
+        post.setCommentCount(0);
+        post.setLikeCount(0);
+        postsRepo.save(post);
     }
     public boolean deletePostById(Long id, User user) {
         try {

@@ -1,15 +1,18 @@
 spring:
   application:
     name: MyNotes
+
   datasource:
     url: jdbc:mysql://localhost:3306/mynotes
     username: root
     password: root123
     driver-class-name: com.mysql.cj.jdbc.Driver
+
   jpa:
     hibernate:
       ddl-auto: update
     show-sql: true
+
   security:
     oauth2:
       client:
@@ -17,10 +20,13 @@ spring:
           google:
             client-id: 261203815672-ntjjuqctbbgq9i5d5833du9vlrgtlvpv.apps.googleusercontent.com
             client-secret: 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
-            scope: profile,email
+            scope:
+              - profile
+              - email
+            redirect-uri: "{baseUrl}/login/oauth2/code/google"
+            client-name: Google
         provider:
           google:
-            redirect-uri: http://localhost:8080/oauth2/google
             authorization-uri: https://accounts.google.com/o/oauth2/auth
             token-uri: https://oauth2.googleapis.com/token
             user-info-uri: https://www.googleapis.com/oauth2/v3/userinfo

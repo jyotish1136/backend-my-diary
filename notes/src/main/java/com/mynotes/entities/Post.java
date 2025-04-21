@@ -32,15 +32,19 @@ public class Post {
     private ArrayList<String> hashtags;
 
     @Column(nullable = false)
-    private int likeCount = 0;
+    private int likeCount;
 
     @Column(nullable = false)
-    private int commentCount = 0;
+    private int commentCount;
 
     @Column(name = "date")
     private LocalDateTime date;
 
-    @ManyToOne
+    @ManyToOne(cascade = CascadeType.ALL)
     @JoinColumn(name = "user_id", nullable = false)
     private User user;
+
+    @OneToMany(mappedBy = "post", cascade = CascadeType.ALL, orphanRemoval = true)
+    @JsonIgnore
+    private List<Like> likes;
 }

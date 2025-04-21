@@ -1,12 +1,15 @@
 package com.mynotes.controllers;
 
+import com.mynotes.DTO.CompleteSignupRequest;
 import com.mynotes.DTO.PostDTO;
+import com.mynotes.OAuth2Handler.TemporaryTokenService;
 import com.mynotes.entities.Post;
 import com.mynotes.entities.User;
 import com.mynotes.services.PostsService;
 import com.mynotes.services.UserDetailsServiceImpl;
 import com.mynotes.services.UserService;
 import com.mynotes.util.JwtUtil;
+import jakarta.servlet.http.HttpServletResponse;
 import lombok.extern.slf4j.Slf4j;
 import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -23,6 +26,7 @@ import org.springframework.web.bind.annotation.*;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 
 @Slf4j
 @RestController
@@ -31,10 +35,8 @@ import java.util.List;
 public class PublicController {
     @Autowired
     private UserService userService;
-
     @Autowired
     private AuthenticationManager authenticationManager;
-
     @Autowired
     private UserDetailsServiceImpl userDetailsService;
     @Autowired
@@ -49,15 +51,31 @@ public class PublicController {
     }
     @Autowired
     private PasswordEncoder passwordEncoder;
+    @Autowired
+    private TemporaryTokenService temporaryTokenService;
     @PostMapping("/signup")
-    public ResponseEntity<String> signup(@RequestBody User user) {
+    public ResponseEntity<String> signup(@RequestBody CompleteSignupRequest request,
+                                         HttpServletResponse response) {
         try {
-            if (user == null || user.getUsername() == null || user.getPassword() == null || user.getEmail() == null) {
+            if (request==null) {
                 return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Username, password, and email are required.");
             }
+            String email = temporaryTokenService.getEmailFromToken(request.getTempToken())
+                    .orElseThrow(() -> new RuntimeException("Invalid or expired token"));
+            Optional<String> avatar = temporaryTokenService.getAvatar();
+            User user = new User();
+            user.setAvatar(avatar.get());
+            user.setEmail(email);
+            user.setUsername(request.getUsername());
+            user.setFirstname(request.getFirstname());
+            user.setLastname(request.getLastname());
+            user.setPassword(passwordEncoder.encode(request.getPassword()));
             user.setRoles(List.of("USER"));
             userService.saveNewUser(user);
-            return ResponseEntity.ok("User registered successfully.");
+            temporaryTokenService.invalidateToken(request.getTempToken());
+            userService.saveNewUser(user);
+            String jwtToken = jwtUtil.generateToken(request.getUsername());
+            return ResponseEntity.ok(jwtToken);
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
                     .body("Error in signup: " + e.getMessage());

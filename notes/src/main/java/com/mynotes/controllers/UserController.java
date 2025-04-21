@@ -3,6 +3,7 @@ package com.mynotes.controllers;
 import com.mynotes.DTO.UserDTO;
 import com.mynotes.entities.User;
 import com.mynotes.services.UserService;
+import jakarta.servlet.http.HttpServletRequest;
 import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;

@@ -1,6 +1,5 @@
 package com.mynotes.services;
 
-import com.mynotes.DTO.CommentDTO;
 import com.mynotes.DTO.CommentDeleteDTO;
 import com.mynotes.DTO.CommentRequestDTO;
 import com.mynotes.entities.Comment;
@@ -34,20 +33,17 @@ public class CommentService {
 
         Post post = postOpt.get();
         User user = userOpt.get();
-
         post.setCommentCount(post.getCommentCount() + 1);
         postsService.savePost(post);
-
         Comment comment = new Comment();
         comment.setUser(user);
         comment.setPostId(post.getId());
         comment.setComment(dto.getComment());
         comment.setDate(LocalDateTime.now());
-
         return commentRepo.save(comment);
     }
 
-
+    @Transactional
     public void deleteComment(CommentDeleteDTO comment) {
         Optional<Post> post = postsService.getPostById(comment.getPostId());
         Post post1 = post.get();

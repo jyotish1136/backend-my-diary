@@ -1,5 +1,6 @@
 package com.mynotes.configuration;
 
+import com.mynotes.OAuth2Handler.OAuth2SuccessHandler;
 import com.mynotes.filter.JwtFilter;
 import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -30,6 +31,9 @@ public class SecurityConfig {
     @Autowired
     private JwtFilter jwtFilter;
 
+    @Autowired
+    private OAuth2SuccessHandler oAuth2SuccessHandler;
+
     @Bean
     AuthenticationManager authenticationManager(AuthenticationConfiguration authenticationConfiguration) throws Exception {
         return authenticationConfiguration.getAuthenticationManager();
@@ -41,13 +45,11 @@ public class SecurityConfig {
                 .cors(cors -> cors.configurationSource(corsConfigurationSource()))
                 .csrf(AbstractHttpConfigurer::disable)
                 .authorizeHttpRequests(auth -> auth
-                        .requestMatchers("/auth/**", "/oauth2/**", "/admin/**").permitAll()
+                        .requestMatchers("/auth/**", "/oauth2/**", "/login/**", "/admin/**").permitAll()
                         .requestMatchers("/notes/**", "/user/**", "/likes/**", "/comments/**").authenticated()
                         .anyRequest().authenticated()
                 )
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
-
-                // Prevent Google OAuth login if JWT is present
                 .exceptionHandling(ex -> ex
                         .authenticationEntryPoint((request, response, authException) -> {
                             response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
@@ -55,9 +57,13 @@ public class SecurityConfig {
                             response.getWriter().write("{\"error\": \"Unauthorized - JWT invalid or missing\"}");
                         })
                 )
-
                 .oauth2Login(oauth2 -> oauth2
-                        .defaultSuccessUrl("/oauth2/google/success", true)
+                        .successHandler(oAuth2SuccessHandler)
+                        .failureHandler((request, response, exception) -> {
+                            response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
+                            response.setContentType("application/json");
+                            response.getWriter().write("{\"error\": \"" + exception.getMessage() + "\"}");
+                        })
                 )
 
                 .addFilterBefore(jwtFilter, UsernamePasswordAuthenticationFilter.class);
@@ -65,6 +71,25 @@ public class SecurityConfig {
         return http.build();
     }
 
+    @Bean
+    public CorsConfigurationSource corsConfigurationSource() {
+        CorsConfiguration corsConfig = new CorsConfiguration();
+        corsConfig.setAllowedOrigins(List.of(
+                "http://localhost:5173",
+                "https://my-notes-3cdx.onrender.com"
+        ));
+        corsConfig.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE"));
+        corsConfig.setAllowedHeaders(List.of("Authorization", "Content-Type"));
+        corsConfig.setAllowCredentials(true);
+
+        UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
+        source.registerCorsConfiguration("/**", corsConfig);
+        return source;
+    }
+
+    /**
+     * Global exception handler for your backend.
+     */
     @RestControllerAdvice
     public class GlobalExceptionHandler {
 
@@ -79,18 +104,5 @@ public class SecurityConfig {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST)
                     .body("Null pointer error: " + ex.getMessage());
         }
-    }
-
-
-    @Bean
-    public CorsConfigurationSource corsConfigurationSource() {
-        CorsConfiguration corsConfig = new CorsConfiguration();
-        corsConfig.setAllowedOrigins(List.of("http://localhost:5173/","https://my-notes-3cdx.onrender.com/"));
-        corsConfig.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE"));
-        corsConfig.setAllowedHeaders(List.of("Authorization", "Content-Type"));
-        corsConfig.setAllowCredentials(true);
-        UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
-        source.registerCorsConfiguration("/**", corsConfig);
-        return source;
     }
 }

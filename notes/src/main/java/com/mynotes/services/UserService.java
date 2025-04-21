@@ -19,12 +19,9 @@ public class UserService {
 
     @Autowired
     private PasswordEncoder passwordEncoder;
-
     public void saveNewUser(User user) {
-        user.setPassword(passwordEncoder.encode(user.getPassword()));
         userRepo.save(user);
     }
-
     @Cacheable(value = "users" ,key = "#username")
     public User findByUsername(String username) {
         return userRepo.findByUsername(username);
@@ -33,7 +30,6 @@ public class UserService {
     public User findByEmail(String email) {
         return userRepo.findByEmail(email);
     }
-
     public void saveUser(User user) {
         userRepo.save(user);
     }
