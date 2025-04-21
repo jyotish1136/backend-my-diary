@@ -75,7 +75,6 @@ public class SecurityConfig {
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration corsConfig = new CorsConfiguration();
         corsConfig.setAllowedOrigins(List.of(
-                "http://localhost:5173",
                 "https://my-notes-3cdx.onrender.com"
         ));
         corsConfig.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE"));
