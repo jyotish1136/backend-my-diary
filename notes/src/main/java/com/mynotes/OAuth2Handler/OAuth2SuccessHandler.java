@@ -37,12 +37,12 @@ public class OAuth2SuccessHandler extends SimpleUrlAuthenticationSuccessHandler 
         User user = userService.findByEmail(email);
         if (user!=null) {
             String jwtToken = jwtUtil.generateToken(user.getUsername());
-            String redirectUrl = "http://localhost:5173/?jwtToken=" + jwtToken;
+            String redirectUrl = "https://my-notes-3cdx.onrender.com/?jwtToken=" + jwtToken;
             getRedirectStrategy().sendRedirect(request, response, redirectUrl);
         } else {
             String jwtToken = tempTokenService.createToken(email);
             tempTokenService.setAvatar(avatar);
-            String redirectUrl = "http://localhost:5173/complete-signup?tempToken=" + jwtToken;
+            String redirectUrl = "https://my-notes-3cdx.onrender.com/complete-signup?tempToken=" + jwtToken;
             getRedirectStrategy().sendRedirect(request, response, redirectUrl);
         }
     }
